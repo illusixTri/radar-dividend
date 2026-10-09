@@ -6,7 +6,6 @@ import pandas as pd
 # ==========================================
 st.set_page_config(page_title="Radar Dividend Capture", page_icon="🎯", layout="wide")
 
-# CSS untuk memadatkan tampilan
 st.markdown("""
     <style>
     .block-container { padding-top: 2.5rem; padding-bottom: 1.5rem; }
@@ -47,7 +46,7 @@ with st.expander("ℹ️ Cara Kerja Aplikasi (Klik untuk melihat)", expanded=Fal
     Anda dapat mengidentifikasi **Jendela Beli** yang ideal untuk mulai mengoleksi saham sebelum harganya berpotensi naik.
     """)
 
-# SIDEBAR: SUMBER DATA
+# SIDEBAR: SUMBER DATA MANUAL
 with st.sidebar:
     st.markdown("### 📂 Sumber Data")
     uploaded_file = st.file_uploader("Unggah file CSV pantauan saham", type=['csv'])
@@ -74,7 +73,6 @@ else:
         with col3:
             st.metric(label="📊 Total saham lolos", value=len(df_filtered))
         
-        # TAMPILKAN HASIL
         if not df_filtered.empty:
             df_display = df_filtered.copy()
             df_display['Jendela Beli'] = df_display['Mulai Beli'].dt.strftime('%d %b %Y') + " s/d " + df_display['Akhir Beli'].dt.strftime('%d %b %Y')
@@ -86,11 +84,21 @@ else:
             df_display = df_display[kolom_tampil]
             df_display = df_display.sort_values(by='Yield (%)', ascending=False).reset_index(drop=True)
             
-            # --- 1. TABEL DITAMPILKAN LEBIH DULU ---
+            # --- TABEL ---
             st.write("### 📋 Detail Jendela Beli")
             st.dataframe(df_display, use_container_width=True, height=200) 
             
-            # --- 2. GRAFIK DITAMPILKAN DI BAWAH TABEL ---
+            # --- FITUR BARU: TOMBOL DOWNLOAD ---
+            # Mengubah tabel menjadi format CSV (teks) agar bisa diunduh
+            csv_hasil = df_display.to_csv(index=False).encode('utf-8')
+            st.download_button(
+                label="📥 Download Hasil Tabel (CSV)",
+                data=csv_hasil,
+                file_name='hasil_radar_dividend.csv',
+                mime='text/csv',
+            )
+            
+            # --- GRAFIK ---
             st.write("### 📈 Perbandingan Yield (%)")
             st.bar_chart(data=df_display, x='Symbol', y='Yield (%)', use_container_width=True)
             
